@@ -1,0 +1,36 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "exerciselambda": {
+      "Type": "AWS::Lambda::Function",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Runtime": "python3.7",
+        "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/test_lambda" ] ] },
+        "Handler": "index.lambda_handler",
+        "Code": {
+          "ZipFile" : {
+            "Fn::Join" : [
+              "\n", [
+                "import json",
+                "import boto3",
+                "def lambda_handler(event, context):",
+                "   ssm_client = boto3.client('ssm')",
+                "   session = boto3.Session()",
+                "   result = ssm_client.get_parameter(Name='UserName')",
+                "   s3 = boto3.resource('s3') ",
+                "   content=result['Parameter']['Value']",
+                "   s3.Object('myinterview-exercises', 'newfile.txt').put(Body=content)",
+                "   return {",
+                "       'StatusCode': 200,",
+                "       'body': json.dumps('Task is completed Successfully!')",
+                "         }"
+
+              ]
+            ]
+          }
+       } 
+      }
+    }
+  }
+}
